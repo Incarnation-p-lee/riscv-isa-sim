@@ -21,8 +21,7 @@ def compile(*args):
     cc = os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gcc")
     cmd = [cc, "-g", "-O", "-o", dst]
     for arg in args:
-        found = find_file(arg)
-        if found:
+        if found := find_file(arg):
             cmd.append(found)
         else:
             cmd.append(arg)
@@ -94,23 +93,20 @@ class Gdb(object):
     def c(self, wait=True):
         if wait:
             return self.command("c")
-        else:
-            self.child.sendline("c")
-            self.child.expect("Continuing")
+        self.child.sendline("c")
+        self.child.expect("Continuing")
 
     def interrupt(self):
         self.child.send("\003");
         self.child.expect("\(gdb\)")
 
     def x(self, address, size='w'):
-        output = self.command("x/%s %s" % (size, address))
-        value = int(output.split(':')[1].strip(), 0)
-        return value
+        output = self.command(f"x/{size} {address}")
+        return int(output.split(':')[1].strip(), 0)
 
     def p(self, obj):
-        output = self.command("p %s" % obj)
-        value = int(output.split('=')[-1].strip())
-        return value
+        output = self.command(f"p {obj}")
+        return int(output.split('=')[-1].strip())
 
     def stepi(self):
         return self.command("stepi")
